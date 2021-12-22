@@ -26,6 +26,30 @@ function toggleReducer(state, {type, initialState}) {
   }
 }
 
+function useControlledSwitchWarning(controlPropValue) {
+  const isControlled = controlPropValue !== null
+  const {current: wasControlled} = React.useRef(isControlled)
+
+  React.useEffect(() => {
+    warning(
+      isControlled && !wasControlled,
+      'changing from uncontrolled to controlled',
+    )
+    warning(
+      !isControlled && wasControlled,
+      'changing from controlled to uncontrolled',
+    )
+  }, [isControlled, wasControlled])
+}
+
+function useOnChangeReadOnlyWarning() {
+  const hasOnChange = Boolean(onChange)
+
+  React.useEffect(() => {
+    warning(!(!hasOnChange && onIsControlled && !readOnly), 'Something bad')
+  }, [hasOnChange, onIsControlled, readOnly])
+}
+
 function useToggle({
   initialOn = false,
   reducer = toggleReducer,
@@ -38,6 +62,9 @@ function useToggle({
   const onIsControlled = controlledOn != null
 
   const on = onIsControlled ? controlledOn : state.on
+
+  useControlledSwitchWarning(controlledOn)
+  useOnChangeReadOnlyWarning()
 
   const hasOnChange = Boolean(onChange)
 
